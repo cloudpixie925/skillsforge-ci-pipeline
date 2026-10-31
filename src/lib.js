@@ -30,3 +30,6 @@ export function sum(numbers) {
   }
   return numbers.reduce((total, n) => total + n, 0);
 }
+
+// Deliberate lint error for the fail-fast demo: this constant is never used.
+const unusedRetryLimit = 3;
