@@ -1,0 +1,3 @@
+# Only the build output goes into the image build context.
+*
+!dist/
