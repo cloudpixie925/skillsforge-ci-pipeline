@@ -1,6 +1,6 @@
 // Pure business logic, kept separate from HTTP so it is easy to unit-test.
 
-export const DEFAULT_NAME = 'World';
+export const DEFAULT_NAME = 'Everyone';
 export const MAX_NAME_LENGTH = 50;
 
 /**
