@@ -1,6 +1,6 @@
 # SkillsForge CI Pipeline: lint → test → build → package
 
-[![CI](__REPO_URL__/actions/workflows/ci.yml/badge.svg)](__REPO_URL__/actions/workflows/ci.yml)
+[![CI](https://github.com/cloudpixie925/skillsforge-ci-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudpixie925/skillsforge-ci-pipeline/actions/workflows/ci.yml)
 
 A small Node.js HTTP service (Express) with a GitHub Actions pipeline that lints, tests, builds and packages it into a Docker image. Built for the SkillsForge DevOps / Cloud Engineering second-stage task.
 
@@ -71,13 +71,13 @@ Third-party actions are pinned to full commit SHAs (with the version in a commen
 
 | What | Link |
 |---|---|
-| Green run, all four jobs passing (cold cache) | [run, attempt 1](__GREEN_RUN_URL__) |
-| Same unchanged commit re-run, cache hit (warm cache) | [run, attempt 2](__WARM_RUN_URL__) |
-| PR with a lint error: lint fails, test, build, package skipped | [pull request](__PR_LINT_URL__) |
-| PR with a failing test: test fails, build, package skipped | [pull request](__PR_TEST_URL__) |
-| PR with a broken build: build fails, package skipped | [pull request](__PR_BUILD_URL__) |
-| Tag `v1.0.0`: full pipeline including package on a tag | [run](__TAG_RUN_URL__) |
-| All runs | [Actions tab](__REPO_URL__/actions) |
+| Green run, all four jobs passing (cold cache) | [run, attempt 1](https://github.com/cloudpixie925/skillsforge-ci-pipeline/actions/runs/41246905650/attempts/1) |
+| Same unchanged commit re-run, cache hit (warm cache) | [run, attempt 2](https://github.com/cloudpixie925/skillsforge-ci-pipeline/actions/runs/41246905650/attempts/2) |
+| PR with a lint error: lint fails, test, build, package skipped | [pull request](https://github.com/cloudpixie925/skillsforge-ci-pipeline/pull/1) |
+| PR with a failing test: test fails, build, package skipped | [pull request](https://github.com/cloudpixie925/skillsforge-ci-pipeline/pull/2) |
+| PR with a broken build: build fails, package skipped | [pull request](https://github.com/cloudpixie925/skillsforge-ci-pipeline/pull/3) |
+| Tag `v1.0.0`: full pipeline including package on a tag | [run](https://github.com/cloudpixie925/skillsforge-ci-pipeline/actions/runs/41247141135) |
+| All runs | [Actions tab](https://github.com/cloudpixie925/skillsforge-ci-pipeline/actions) |
 
 The three pull requests are deliberately left open and must not be merged.
 
@@ -120,9 +120,9 @@ A job with `needs:` runs only if every job it needs succeeded (an implicit `if: 
 
 | Pull request | Ran | Skipped | Workflow lines responsible |
 |---|---|---|---|
-| [Lint error](__PR_LINT_URL__) (unused constant in `src/lib.js`) | lint ✗ | test, build, package | `run: npm run lint` (53) exits non-zero; test has `needs: lint` (57); build has `needs: test` (88); package has `needs: build` (127) |
-| [Failing test](__PR_TEST_URL__) (default name changed to "Everyone") | lint ✓, test ✗ | build, package | `run: npm test` (84) fails; `needs: test` (88) skips build; `needs: build` (127) skips package |
-| [Broken build](__PR_BUILD_URL__) (imports a missing `./banner.js`) | lint ✓, test ✓, build ✗ | package | `run: npm run build` (115) fails because esbuild cannot resolve the import, so the upload step (118) never runs; `needs: build` (127) skips package |
+| [Lint error](https://github.com/cloudpixie925/skillsforge-ci-pipeline/pull/1) (unused constant in `src/lib.js`) | lint ✗ | test, build, package | `run: npm run lint` (53) exits non-zero; test has `needs: lint` (57); build has `needs: test` (88); package has `needs: build` (127) |
+| [Failing test](https://github.com/cloudpixie925/skillsforge-ci-pipeline/pull/2) (default name changed to "Everyone") | lint ✓, test ✗ | build, package | `run: npm test` (84) fails; `needs: test` (88) skips build; `needs: build` (127) skips package |
+| [Broken build](https://github.com/cloudpixie925/skillsforge-ci-pipeline/pull/3) (imports a missing `./banner.js`) | lint ✓, test ✓, build ✗ | package | `run: npm run build` (115) fails because esbuild cannot resolve the import, so the upload step (118) never runs; `needs: build` (127) skips package |
 
 The broken build passes lint and test on purpose: ESLint does not resolve imports and the tests import `app.js`, not `server.js`, so only the bundler notices. On pull requests the package job is also excluded by the `if:` on line 129, so it would show as skipped even if build had passed.
 
@@ -132,9 +132,9 @@ Timings come from the GitHub API for attempt 1 (cold) and attempt 2 (warm) of th
 
 | | Cold run | Warm run |
 |---|---|---|
-| Wall-clock time (whole run) | __COLD_WALL__ | __WARM_WALL__ |
-| Sum of all job times (billable) | __COLD_JOBS__ | __WARM_JOBS__ |
-| `npm ci` step per job | __COLD_NPM__ | __WARM_NPM__ |
+| Wall-clock time (whole run) | 64 s | 66 s |
+| Sum of all job times (billable) | 52 s | 51 s |
+| `npm ci` step per job | lint 3s / test 2s / build 1s | lint 1s / test 1s / build 2s |
 
 **What accounts for the difference.** In the cold run no cache existed yet, so the lint job's `npm ci` downloaded every package from the npm registry. At the end of the lint job the cache was saved, which means test and build in the same run already restored it. In the warm run all three jobs restored the cache in about a second, and `npm ci` only unpacked tarballs from disk. Most of the remaining time is fixed per-job overhead that caching cannot remove: getting a runner, checkout, setting up Node, and the Docker build and smoke test in package. Runner start-up also varies by a few seconds between runs, so on a project this small the clearest signal is the `npm ci` step in the lint job; the saving grows with the number of dependencies.
 
